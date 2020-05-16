@@ -22,7 +22,9 @@ class Specs(APIView):
             'authUrl': os.environ['AUTHENTICATION_URL'],
             'cdriveUrl': os.environ['CDRIVE_URL'],
             'cdriveApiUrl': os.environ['CDRIVE_API_URL'],
-            'username': os.environ['COLUMBUS_USERNAME']
+            'username': os.environ['COLUMBUS_USERNAME'],
+            'appName': os.environ['APP_NAME'],
+            'appUrl': os.environ['APP_URL']
         }
         return Response(data, status=status.HTTP_200_OK)
 

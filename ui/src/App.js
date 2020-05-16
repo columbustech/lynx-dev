@@ -3,6 +3,7 @@ import Cookies from 'universal-cookie';
 import axios from 'axios';
 import JobStatus from './JobStatus';
 import CreateJob from './CreateJob';
+import ListJobs from './ListJobs';
 import Home from './Home';
 
 class App extends React.Component {
@@ -26,13 +27,12 @@ class App extends React.Component {
     }
     var url = new URL(window.location.href);
     var code = url.searchParams.get("code");
-    var redirect_uri = `${this.state.specs.cdriveUrl}app/${this.state.specs.username}/lynx/`;
     if (code == null) {
-      window.location.href = `${this.state.specs.authUrl}o/authorize/?response_type=code&client_id=${this.state.specs.clientId}&redirect_uri=${redirect_uri}&state=1234xyz`;
+      window.location.href = `${this.state.specs.authUrl}o/authorize/?response_type=code&client_id=${this.state.specs.clientId}&redirect_uri=${this.state.specs.appUrl}&state=1234xyz`;
     } else {
       const request = axios({
         method: 'POST',
-        url: `${redirect_uri}api/access-token/`,
+        url: `${this.state.specs.appUrl}api/access-token/`,
         data: {
           code: code,
           redirect_uri: redirect_uri
@@ -55,6 +55,8 @@ class App extends React.Component {
       newState['uid'] = tokens[5];
     } else if((tokens.length>4) && (tokens[4] === "create")) {
       newState['component'] = CreateJob;
+    } else if((tokens.length>4) && (tokens[4] === "list")) {
+      newState['component'] = ListJobs;
     } else {
       newState['component'] = Home;
     }

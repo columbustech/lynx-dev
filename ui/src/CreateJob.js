@@ -69,7 +69,7 @@ class CreateJob extends React.Component {
     const cookies = new Cookies();
     const request = axios({
       method: 'POST',
-      url: `${this.props.specs.cdriveUrl}app/${this.props.specs.username}/lynx/api/execute-workflow/`,
+      url: `${this.props.specs.appUrl}api/execute-workflow/`,
       data: {
         jobName: this.state.jobName,
         inputDir: this.state.inputDir,
@@ -94,7 +94,7 @@ class CreateJob extends React.Component {
     });
     request.then(
       response => {
-        window.location.href = `${this.props.specs.cdriveUrl}app/${this.props.specs.username}/lynx/job/${response.data.uid}`;
+        window.location.href = `${this.props.specs.appUrl}job/${response.data.uid}`;
       },
     );
   }
@@ -145,7 +145,7 @@ class CreateJob extends React.Component {
       </button>
     );
     homeButton = (
-      <a className="btn btn-lg btn-secondary blocker-btn" href={`${this.props.specs.cdriveUrl}app/${this.props.specs.username}/lynx/`}>
+      <a className="btn btn-lg btn-secondary blocker-btn" href={this.props.specs.appUrl}>
         Home
       </a>
     );

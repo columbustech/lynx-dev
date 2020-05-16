@@ -17,7 +17,7 @@ class JobStatus extends React.Component{
   pollStatus() {
     const request = axios({
       method: 'GET',
-      url: `${this.props.specs.cdriveUrl}app/${this.props.specs.username}/lynx/api/status/?uid=${this.props.uid}`
+      url: `${this.props.specs.appUrl}api/status/?uid=${this.props.uid}`
     });
     request.then(
       response => {
@@ -34,7 +34,7 @@ class JobStatus extends React.Component{
     const cookies = new Cookies();
     const request = axios({
       method: 'POST',
-      url: `${this.props.specs.cdriveUrl}/app/${this.props.specs.username}/lynx/api/save-model/`,
+      url: `${this.props.specs.appUrl}api/save-model/`,
       data: {
         uid: this.state.job.uid,
       },
@@ -53,7 +53,7 @@ class JobStatus extends React.Component{
     const cookies = new Cookies();
     const request = axios({
       method: 'POST',
-      url: `${this.props.specs.cdriveUrl}/app/${this.props.specs.username}/lynx/api/apply-model/`,
+      url: `${this.props.specs.appUrl}api/apply-model/`,
       data: {
         uid: this.state.job.uid,
       },
@@ -103,7 +103,7 @@ class JobStatus extends React.Component{
         );
       }
       actions.push(
-        <a className="btn btn-secondary btn-lg blocker-btn" href={`${this.props.specs.cdriveUrl}app/${this.props.specs.username}/lynx/`}>
+        <a className="btn btn-secondary btn-lg blocker-btn" href={this.props.specs.appUrl}>
           Home
         </a>
       );

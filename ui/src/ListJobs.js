@@ -53,30 +53,59 @@ class Home extends React.Component {
     },);
   }
   render() {
+    let table;
+    if (this.state.jobList.length !== 0) {
+      let rows;
+      rows = this.state.jobList.map((job, i) => {
+        return (
+          <tr key={i} className="app-row" onClick={e => this.selectJob(e, job.uid)}>
+            <td>
+              {job.job_name}
+            </td>
+            <td>
+              {job.stage}
+            </td>
+            <td>
+              <DropdownButton variant="transparent" title="" alignRight >
+                <Dropdown.Item onClick={e => this.deleteJob(e, job.uid)}>
+                  Delete
+                </Dropdown.Item>
+              </DropdownButton>
+            </td>
+          </tr>
+        );
+      });
+      table = (
+        <Table>
+          <thead>
+            <tr>
+              <td style={{minWidth: 200}}>Job Name</td>
+              <td style={{minWidth: 200}}>Stage</td>
+              <td>Actions</td>
+            </tr>
+          </thead>
+          <tbody>
+            {rows}
+          </tbody>
+        </Table>
+      );
+    } else {
+      table = (
+        <div>No Existing Schema Matching Jobs on Lynx</div>
+      );
+    }
     return (
       <div className="app-container">
         <div className="app-header">
-          Lynx Developer Interface
+          Lynx: An End to End Schema Matching Solution
         </div>
         <div className="app-table mt-5">
-          <table>
-            <tr>
-              <td>
-              </td>
-              <td>
-              </td>
-              <td>
-              </td>
-            </tr>
-            <tr>
-              <td>
-              </td>
-              <td>
-              </td>
-              <td>
-              </td>
-            </tr>
-          </table>
+          {table}
+        </div>
+        <div className="app-menu mt-5">
+          <a className="btn btn-primary" href={`${this.props.specs.appUrl}create`} style={{marginLeft: 50, width: 150}}>
+            New Job
+          </a>
         </div>
       </div>
     );
