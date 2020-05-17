@@ -4,13 +4,15 @@ import axios from 'axios';
 import JobStatus from './JobStatus';
 import CreateJob from './CreateJob';
 import ListJobs from './ListJobs';
+import CreateContainer from './CreateContainer';
+import PublishApp from './PublishApp';
 import Home from './Home';
+import { BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 
 class App extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      component: Home,
       uid: "",
       specs: {},
       isLoggedIn: false
@@ -35,39 +37,26 @@ class App extends React.Component {
         url: `${this.state.specs.appUrl}api/access-token/`,
         data: {
           code: code,
-          redirect_uri: redirect_uri
+          redirect_uri: this.state.specs.appUrl
         }
       });
       request.then(
         response => {
           cookies.set('lynx_token', response.data.access_token);
-          window.location.href = redirect_uri;
+          window.location.href = this.state.specs.appUrl;
         }, err => {
         }
       );
     }
   }
   initPage() {
-    var tokens = window.location.pathname.split('/');
-    var newState = {};
-    if ((tokens.length>5) && (tokens[4] === "job")) {
-      newState['component'] = JobStatus;
-      newState['uid'] = tokens[5];
-    } else if((tokens.length>4) && (tokens[4] === "create")) {
-      newState['component'] = CreateJob;
-    } else if((tokens.length>4) && (tokens[4] === "list")) {
-      newState['component'] = ListJobs;
-    } else {
-      newState['component'] = Home;
-    }
     const request = axios({
       method: 'GET',
-      url: `${window.location.protocol}//${window.location.hostname}/${tokens[1]}/${tokens[2]}/${tokens[3]}/api/specs/`
+      url: `${process.env.PUBLIC_URL}/api/specs/`
     });
     request.then(
       response => {
-        newState['specs'] = response.data;
-        this.setState(newState);
+        this.setState({"specs": response.data});
       },
     );
   }
@@ -79,8 +68,33 @@ class App extends React.Component {
       this.authenticateUser();
       return (null);
     } else {
+      var url = new URL(process.env.PUBLIC_URL);
       return (
-        <this.state.component specs={this.state.specs} uid={this.state.uid} />
+        <Router basename={url.pathname} >
+          <Switch>
+            <Route path="/job/:uid" component={JobStatus} />
+            <Route 
+              path="/list/" 
+              render={(props) => <ListJobs {...props} specs={this.state.specs} />} 
+            />
+            <Route 
+              path="/create/" 
+              render={(props) => <CreateJob {...props} specs={this.state.specs} />} 
+            />
+            <Route 
+              path="/function/" 
+              render={(props) => <CreateContainer {...props} specs={this.state.specs} />} 
+            />
+            <Route 
+              path="/publish/" 
+              render={(props) => <PublishApp {...props} specs={this.state.specs} />} 
+            />
+            <Route 
+              path="/" 
+              render={(props) => <Home {...props} specs={this.state.specs} />} 
+            />
+          </Switch>
+        </Router>
       );
     }
   }

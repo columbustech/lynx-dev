@@ -1,57 +1,9 @@
 import React from 'react';
-import Cookies from 'universal-cookie';
-import axios from 'axios';
-import Table from 'react-bootstrap/Table';
-import Dropdown from 'react-bootstrap/Dropdown';
-import DropdownButton from 'react-bootstrap/DropdownButton';
+import { Link } from "react-router-dom";
+import { FaPlus, FaDocker, FaRunning } from 'react-icons/fa';
 import './Lynx.css';
 
 class Home extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      jobList: [],
-    };
-    this.listJobs = this.listJobs.bind(this);
-    this.selectJob = this.selectJob.bind(this);
-    this.deleteJob = this.deleteJob.bind(this);
-  }
-  componentDidMount() {
-    this.listJobs();
-  }
-  listJobs() {
-    const cookies = new Cookies();
-    const request = axios({
-      method: 'GET',
-      url: `${this.props.specs.appUrl}api/list-jobs/`,
-      headers: {'Authorization': `Bearer ${cookies.get('lynx_token')}`}
-    });
-    request.then(response => {
-      this.setState({
-        jobList: response.data
-      });
-    },err => {
-    });
-  }
-  selectJob(e, uid) {
-    if (!e.target.classList.contains("dropdown-item") && !e.target.classList.contains("btn")) {
-      window.location.href = `${this.props.specs.appUrl}job/${uid}`;
-    }
-  }
-  deleteJob(e, uid) {
-    const cookies = new Cookies();
-    const request = axios({
-      method: 'POST',
-      url: `${this.props.specs.appUrl}api/delete-job/`,
-      data: {
-        uid: uid
-      },
-      headers: {'Authorization': `Bearer ${cookies.get('lynx_token')}`}
-    });
-    request.then(response => {
-      this.listJobs();
-    },);
-  }
   render() {
     return (
       <div className="app-container">
@@ -62,18 +14,42 @@ class Home extends React.Component {
           <table>
             <tr>
               <td>
+                <div className="app-thumbnail">
+                  <Link to="function/" style={{display: "block"}}>
+                    <FaPlus style={{margin: 50 }} size={100} color="#4A274F" />
+                  </Link>
+                </div>
               </td>
               <td>
+                <div className="app-thumbnail">
+                  <Link to="list/" style={{display: "block"}}>
+                    <FaRunning style={{margin: 50 }} size={100} color="#4A274F" />
+                  </Link>
+                </div>
               </td>
               <td>
+                <div className="app-thumbnail">
+                  <Link to="publish/" style={{display: "block"}}>
+                    <FaDocker style={{margin: 50 }} size={100} color="#4A274F" />
+                  </Link>
+                </div>
               </td>
             </tr>
             <tr>
               <td>
+                <div className="text-div">
+                  Create {"Function"}
+                </div>
               </td>
               <td>
+                <div className="text-div">
+                  Run Job
+                </div>
               </td>
               <td>
+                <div className="text-div">
+                  Publish App
+                </div>
               </td>
             </tr>
           </table>
