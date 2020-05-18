@@ -4,137 +4,28 @@ import axios from 'axios';
 import CDrivePathSelector from './CDrivePathSelector';
 import './Lynx.css';
 
-class FunctionSelector extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      selector: false
-    };
-  }
-  render() {
-    let componentBody;
-    if(this.props.expand) {
-      let fileName;
-      function getName(cDrivePath) {
-        if (cDrivePath === "") {
-          return ""
-        }
-        return cDrivePath.substring(cDrivePath.lastIndexOf("/") + 1);
-      }
-      fileName = getName(this.props.functionPath);
-      componentBody = (
-        <div className="lynx-panel-body">
-          <CDrivePathSelector show={this.state.selector} toggle={() => this.setState({selector : false})}
-            action={this.props.updatePath} title="Select Python Function File"  actionName="Select"
-            driveObjects={this.props.driveObjects} type="file" />
-          <button className="btn btn-secondary m-3" onClick={() => this.setState({selector : true})} >
-            Browse
-          </button>
-          <span className="m-3">{fileName}</span>
-        </div>
-      );
-    }
-    return(
-      <div className="lynx-panel">
-        <div className="lynx-panel-header" onClick={this.props.changeComponent}>
-          {"Function"} File
-        </div>
-        {componentBody}
-      </div>
-    );
-  }
-}
-class RequirementsSelector extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      selector: false
-    };
-  }
-  render() {
-    let componentBody;
-    if(this.props.expand) {
-      let fileName;
-      function getName(cDrivePath) {
-        if (cDrivePath === "") {
-          return ""
-        }
-        return cDrivePath.substring(cDrivePath.lastIndexOf("/") + 1);
-      }
-      fileName = getName(this.props.requirementsPath);
-      componentBody = (
-        <div className="lynx-panel-body">
-          <CDrivePathSelector show={this.state.selector} toggle={() => this.setState({selector : false})}
-            action={this.props.updatePath} title="Select Pip Requirements File"  actionName="Select"
-            driveObjects={this.props.driveObjects} type="file" />
-          <button className="btn btn-secondary m-3" onClick={() => this.setState({selector : true})} >
-            Browse
-          </button>
-          <span className="m-3">{fileName}</span>
-        </div>
-      );
-    }
-    return(
-      <div className="lynx-panel">
-        <div className="lynx-panel-header" onClick={this.props.changeComponent}>
-          Requirements File
-        </div>
-        {componentBody}
-      </div>
-    );
-  }
-}
-class PackagesSelector extends React.Component {
-  render() {
-    let componentBody;
-    if(this.props.expand) {
-      componentBody = (
-        <div className="lynx-panel-body">
-        </div>
-      );
-    }
-    return(
-      <div className="lynx-panel">
-        <div className="lynx-panel-header" onClick={this.props.changeComponent}>
-          Local Packages
-        </div>
-        {componentBody}
-      </div>
-    );
-  }
-}
-class DirectoriesSelector extends React.Component {
-  render() {
-    let componentBody;
-    if(this.props.expand) {
-      componentBody = (
-        <div className="lynx-panel-body">
-        </div>
-      );
-    }
-    return(
-      <div className="lynx-panel">
-        <div className="lynx-panel-header" onClick={this.props.changeComponent}>
-          Directories
-        </div>
-        {componentBody}
-      </div>
-    );
-  }
-}
-
 class CreateContainer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      component: FunctionSelector,
       driveObjects: [],
-      functionPath: "",
-      requirementsPath: "",
-      localPackages: [],
-      directories: []
+      contextName: "",
+      context: "",
+      contextSelector: false,
+      processFunction: "",
+      functionSelector: false,
+      requirements: "",
+      requirementsSelector: false,
+      packages: "",
+      packagesSelector: false,
+      modules: "",
+      modulesPathSelector: false,
+      execStatus: "",
+      execMessage: ""
     };
     this.getDriveObjects = this.getDriveObjects.bind(this);
+    this.createBuildContext = this.createBuildContext.bind(this);
+    this.clearInputs = this.clearInputs.bind(this);
   }
   componentDidMount() {
     this.getDriveObjects();
@@ -164,26 +55,167 @@ class CreateContainer extends React.Component {
       }
     );
   }
+  createBuildContext() {
+    this.setState({execStatus: "Running"});
+    const cookies = new Cookies();
+    var data = {
+      contextName: this.state.contextName,
+      context: this.state.context,
+      processFunction: this.state.processFunction,
+    };
+    if (this.state.requirements !== "") {
+      data['requirements'] = this.state.requirements;
+    }
+    if (this.state.packages !== "") {
+      data['packages'] = this.state.packages;
+    }
+    if (this.state.modules !== "") {
+      data['modules'] = this.state.modules;
+    }
+    const request = axios({
+      method: 'POST',
+      url: `${this.props.specs.appUrl}api/create-image-context/`,
+      data: data,
+      headers: {
+        'Authorization': `Bearer ${cookies.get('lynx_token')}`,
+      }
+    });
+    request.then(
+      response => {
+        this.setState({execStatus: "Complete"});
+      },
+    );
+  }
+  clearInputs() {
+    this.setState({
+      contextName: "",
+      context: "",
+      processFunction: "",
+      requirements: "",
+      packages: "",
+      modules: ""
+    });
+  }
   render() {
+    let context, processFunction, requirements, packages, modules;
+    function getName(cDrivePath) {
+      if (cDrivePath === "") {
+        return ""
+      }
+      return cDrivePath.substring(cDrivePath.lastIndexOf("/") + 1);
+    }
+    context = getName(this.state.context);
+    processFunction = getName(this.state.processFunction);
+    requirements = getName(this.state.requirements);
+    packages = getName(this.state.packages);
+    modules = getName(this.state.modules);
+    let execButton, clearButton;
+    if (this.state.execStatus !== "Running") {
+      execButton = (
+        <button className="btn btn-lg btn-primary blocker-btn" onClick={this.createBuildContext} >
+          Create
+        </button>
+      );
+    } else {
+        execButton = (
+          <button className="btn btn-lg btn-primary blocker-btn" disabled>
+            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span className="ml-2">Create</span>
+          </button>
+        );
+    }
+    clearButton = (
+      <button className="btn btn-lg btn-secondary blocker-btn" onClick={this.clearInputs} >
+        Clear
+      </button>
+    );
     return (
       <div className="app-container">
         <div className="app-header">
           Create and Push {"Function"} Container
         </div>
-        <FunctionSelector expand={this.state.component === FunctionSelector} 
-          changeComponent={() => this.setState({component: FunctionSelector})}
-          driveObjects={this.state.driveObjects} 
-          updatePath={path => this.setState({functionPath: path})} 
-          functionPath={this.state.functionPath} />
-        <RequirementsSelector expand={this.state.component === RequirementsSelector} 
-          changeComponent={() => this.setState({component: RequirementsSelector})}
-          driveObjects={this.state.driveObjects} 
-          updatePath={path => this.setState({requirementsPath: path})} 
-          requirementsPath={this.state.requirementsPath} />
-        <PackagesSelector expand={this.state.component === PackagesSelector} 
-          changeComponent={() => this.setState({component: PackagesSelector})} />
-        <DirectoriesSelector expand={this.state.component === DirectoriesSelector}
-          changeComponent={() => this.setState({component: DirectoriesSelector})} />
+        <CDrivePathSelector show={this.state.contextSelector} toggle={() => this.setState({contextSelector : false})}
+        action={path => this.setState({context: path})} title="Select Output Folder"  actionName="Select"
+        driveObjects={this.state.driveObjects} type="folder" />
+        <CDrivePathSelector show={this.state.functionSelector} toggle={() => this.setState({functionSelector : false})}
+        action={path => this.setState({processFunction: path})} title="Select File Containing Process Function"  actionName="Select"
+        driveObjects={this.state.driveObjects} type="file" />
+        <CDrivePathSelector show={this.state.requirementsSelector} toggle={() => this.setState({requirementsSelector : false})}
+        action={path => this.setState({requirements: path})} title="Select Pip Requirements File"  actionName="Select"
+        driveObjects={this.state.driveObjects} type="file" />
+        <CDrivePathSelector show={this.state.packagesSelector} toggle={() => this.setState({packagesSelector : false})}
+        action={path => this.setState({packages: path})} title="Select Packages Folder"  actionName="Select this folder"
+        driveObjects={this.state.driveObjects} type="folder" />
+        <CDrivePathSelector show={this.state.modulesSelector} toggle={() => this.setState({modulesSelector : false})}
+        action={path => this.setState({modules: path})} title="Select Modules"  actionName="Select this folder"
+        driveObjects={this.state.driveObjects} type="folder" />
+        <table className="mx-auto">
+          <tr>
+            <td>
+              <span className="m-3">Image Name:</span>
+            </td>
+            <td>
+              <input type="text" placeholder="Image Name" value={this.state.contextName} className="p-2 m-3 cdrive-input-item" onChange={e => this.setState({contextName:e.target.value})} />
+            </td>
+            <td>
+              <span className="m-3">Output Path:</span>
+            </td>
+            <td>
+              <button className="btn btn-secondary m-3" onClick={() => this.setState({contextSelector : true})} >
+                Browse
+              </button>
+              <span className="m-3">{context}</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span className="m-3">Process {"Function"}:</span>
+            </td>
+            <td>
+              <button className="btn btn-secondary m-3" onClick={() => this.setState({functionSelector : true})} >
+                Browse
+              </button>
+              <span className="m-3">{processFunction}</span>
+            </td>
+            <td>
+              <span className="m-3">Requirements:</span>
+            </td>
+            <td>
+              <button className="btn btn-secondary m-3" onClick={() => this.setState({requirementsSelector : true})} >
+                Browse
+              </button>
+              <span className="m-3">{requirements}</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span className="m-3">Local Packages:</span>
+            </td>
+            <td>
+              <button className="btn btn-secondary m-3" onClick={() => this.setState({packagesSelector : true})} >
+                Browse
+              </button>
+              <span className="m-3">{packages}</span>
+            </td>
+            <td>
+              <span className="m-3">Modules:</span>
+            </td>
+            <td>
+              <button className="btn btn-secondary m-3" onClick={() => this.setState({modulesSelector : true})} >
+                Browse
+              </button>
+              <span className="m-3">{modules}</span>
+            </td>
+          </tr>
+          <tr>
+            <td colSpan={4}>
+              <div className="input-div text-center">
+                {execButton}
+                {clearButton}
+              </div>
+            </td>
+          </tr>
+        </table>
       </div>
     );
   }

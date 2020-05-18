@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,7 +12,9 @@ from .serializers import SMJobSerializer
 from .job_manager import SMJobManager
 from .actions import execute_workflow, complete_iteration, save_model, apply_model
 
-import os, requests, string, random, threading, logging
+import py_cdrive_api
+
+import os, requests, string, random, threading, logging, shutil, tarfile
 
 class Specs(APIView):
     parser_class = (JSONParser,)
@@ -106,4 +109,51 @@ class DeleteJob(APIView):
     def post(self, request):
         uid = request.data['uid']
         SMJob.objects.filter(uid=uid).delete()
+        return Response(status=status.HTTP_200_OK)
+
+class CreateImageContext(APIView):
+    parser_class = (JSONParser,)
+
+    def post(self, request):
+        auth_header = request.META['HTTP_AUTHORIZATION']
+        token = auth_header.split()[1]
+        client = py_cdrive_api.CDriveClient(access_token=token)
+
+        context_name = request.data['contextName']
+        context_path = request.data['context']
+        process_path = request.data['processFunction']
+        requirements_path = None
+        if 'requirements' in request.data:
+            requirements_path = request.data['requirements']
+        packages_path = None
+        if 'packages' in request.data:
+            packages_path = request.data['packages']
+        modules_path = None
+        if 'modules' in request.data:
+            modules_path = request.data['modules']
+
+        base_path = settings.BUILD_CONTEXTS_PATH + '/' + context_name
+        if os.path.exists(base_path):
+            shutil.rmtree(base_path)
+        shutil.copytree(settings.BUILD_CONTEXTS_PATH + '/template', base_path)
+
+        client.download(process_path, local_path=base_path + '/src/process')
+
+        if requirements_path is not None:
+            requirements_url = client.download(requirements_path)
+            response = requests.get(requirements_url)
+            with open(base_path + '/src/requirements.txt', 'a') as f:
+                f.write(response.content)
+
+        if packages_path is not None:
+            client.download(packages_path, local_path = base_path + '/src')
+
+        if modules_path is not None:
+            client.download(modules_path, local_path = base_path + '/src/process')
+
+        with tarfile.open(base_path + '.tar.gz', 'w:gz') as tar:
+            tar.add(base_path)
+
+        client.upload(base_path + '.tar.gz', context_path)
+
         return Response(status=status.HTTP_200_OK)
