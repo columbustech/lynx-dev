@@ -1,0 +1,6 @@
+django
+djangorestframework
+pandas
+requests
+py-cdrive-api
+gunicorn

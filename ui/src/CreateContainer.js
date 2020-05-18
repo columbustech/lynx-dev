@@ -135,7 +135,7 @@ class CreateContainer extends React.Component {
           Create and Push {"Function"} Container
         </div>
         <CDrivePathSelector show={this.state.contextSelector} toggle={() => this.setState({contextSelector : false})}
-        action={path => this.setState({context: path})} title="Select Output Folder"  actionName="Select"
+        action={path => this.setState({context: path})} title="Select Output Folder"  actionName="Select this folder"
         driveObjects={this.state.driveObjects} type="folder" />
         <CDrivePathSelector show={this.state.functionSelector} toggle={() => this.setState({functionSelector : false})}
         action={path => this.setState({processFunction: path})} title="Select File Containing Process Function"  actionName="Select"

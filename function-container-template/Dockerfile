@@ -3,6 +3,7 @@ FROM python:3
 RUN apt-get update && apt-get install -y vim
 
 WORKDIR /process/src
+COPY requirements.txt .
 COPY src .
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 

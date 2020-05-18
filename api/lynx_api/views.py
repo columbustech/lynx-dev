@@ -142,8 +142,8 @@ class CreateImageContext(APIView):
         if requirements_path is not None:
             requirements_url = client.download(requirements_path)
             response = requests.get(requirements_url)
-            with open(base_path + '/src/requirements.txt', 'a') as f:
-                f.write(response.content)
+            with open(base_path + '/requirements.txt', 'a') as f:
+                f.write(response.text)
 
         if packages_path is not None:
             client.download(packages_path, local_path = base_path + '/src')
@@ -152,7 +152,8 @@ class CreateImageContext(APIView):
             client.download(modules_path, local_path = base_path + '/src/process')
 
         with tarfile.open(base_path + '.tar.gz', 'w:gz') as tar:
-            tar.add(base_path)
+            for item in os.listdir(base_path):
+                tar.add(base_path + '/' + item, arcname=item)
 
         client.upload(base_path + '.tar.gz', context_path)
 
